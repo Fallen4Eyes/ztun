@@ -14,9 +14,11 @@ pub fn build(b: *std.Build) !void {
 
     // Modules available to downstream dependencies
     const ztun_module = b.addModule("ztun", .{
-        .source_file = .{ .path = "src/ztun.zig" },
+        .root_source_file = .{ .path = "src/ztun.zig" },
     });
 
+    const lib = b.addStaticLibrary(.{ .name = "ztun", .root_source_file = .{ .path = "src/ztun.zig" }, .target = target, .optimize = optimize });
+    b.installArtifact(lib);
     if (build_samples) {
         const path = try b.build_root.join(b.allocator, &[_][]const u8{"samples"});
         const dir = try std.fs.openDirAbsolute(path, std.fs.Dir.OpenDirOptions{ .iterate = true });
@@ -35,7 +37,7 @@ pub fn build(b: *std.Build) !void {
                 .optimize = optimize,
                 .target = target,
             });
-            sample_exe.addModule("ztun", ztun_module);
+            sample_exe.root_module.addImport("ztun", ztun_module);
             sample_exe.linkLibC();
 
             b.installArtifact(sample_exe);
